@@ -6,7 +6,7 @@ import lcddriver
 import datetime
 import Adafruit_BMP.BMP085 as BMP085
 
-display = lcddriver.lcd()
+#display = lcddriver.lcd()
 bmp085sensor = BMP085.BMP085()
 
 from subprocess import call
@@ -15,7 +15,7 @@ def lcdPrint(text, linenum=1):
     global display
     display.lcd_display_string(text.ljust(16), linenum) 
 def upload(key, value):
-    print('/usr/bin/zabbix_sender','-c','/etc/zabbix/zabbix_agentd.conf', '-k',key, '-v', value)
+    print('/usr/bin/zabbix_sender','-c','/etc/zabbix/zabbix_agentd.conf', '-k',key, '-o', value)
     print call(['/usr/bin/zabbix_sender','-c','/etc/zabbix/zabbix_agentd.conf', '-k',key, '-o', str(value)])
 
 
@@ -49,7 +49,8 @@ def run_zabbix():
             time.sleep(60)
 
     finally:
-        display.lcd_clear()
+        #display.lcd_clear()
+        pass
 
 if __name__ == '__main__':
     run_zabbix()

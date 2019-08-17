@@ -1,0 +1,2 @@
+rm.o: src/rm.cc /home/pi/git_repo/mlx90640-library/headers/MLX90640_API.h \
+ src/fb.h

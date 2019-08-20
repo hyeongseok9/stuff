@@ -1,0 +1,4 @@
+zmq
+matplotlib
+numpy
+sqlite3

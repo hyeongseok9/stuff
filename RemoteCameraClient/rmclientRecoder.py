@@ -3,7 +3,6 @@ import time
 import zmq
 import matplotlib.pyplot as plt
 from PIL import Image
-import interpolate3
 from matplotlib import cm
 import numpy as np
 from pprint import pprint
@@ -13,6 +12,7 @@ remoteaddr = "localhost:5555"
 context = zmq.Context()
 print ("Connecting server")
 socket = context.socket(zmq.REQ)
+
 socket.connect("tcp://{}".format(remoteaddr))
 
 import LocalConf

@@ -1,0 +1,14 @@
+<html>
+<head>
+</head>
+<body>
+<table>
+<thead><tr><td>Time Stamp</td></tr></thead>
+<tbody>
+{% for photo in photos %}
+<tr><td><a href="/photo/{{photo.Id}}/view?width={{photo.Width}}&height={{photo.Height}}">{{photo.Taken}}</a></td></tr>
+{% endfor %}
+</tbody>
+</table>
+</body>
+</html>

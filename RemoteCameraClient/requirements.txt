@@ -2,3 +2,4 @@ zmq
 matplotlib
 numpy
 Pillow
+picamera

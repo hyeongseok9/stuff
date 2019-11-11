@@ -7,7 +7,7 @@ import interpolate3
 from matplotlib import cm
 import numpy as np
 from pprint import pprint
-remoteaddr = "192.168.0.5:5555"
+remoteaddr = "localhost:5555"
 
 context = zmq.Context()
 print ("Connecting server")
@@ -25,13 +25,16 @@ for i in range(1,13):
     #print('samples:', len(samples), samples.__class__)
     imgwidth = 32
     imgheight= 24
+    rows = []
     while samples:
         row = samples[:imgwidth*4]
+        rows.append(row)
+        samples = samples[imgwidth*4:]
+    for row in reversed(rows):
         #print('row length', len(row))
         #print('f'*imgwidth)
         frow = struct.unpack_from('<'+'f'*imgwidth, row)
         temps+=frow
-        samples = samples[imgwidth*4:]
 
     from scipy import interpolate
 

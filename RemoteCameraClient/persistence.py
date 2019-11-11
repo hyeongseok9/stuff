@@ -17,6 +17,6 @@ def create_or_open_db(db_file):
     return conn
 
 
-def add_photo(conn, photob, width, height):
-    conn.execute('INSERT INTO THERMAL_PICTURES (Picture, Width, Height) VALUES (?,?,?)', (photob, width, height))
+def add_photo(conn, photob, width, height, realphotopath):
+    conn.execute('INSERT INTO THERMAL_PICTURES (Picture, Width, Height, RealPhotoPath) VALUES (?,?,?, ?)', (photob, width, height, realphotopath))
     conn.commit()

@@ -3,7 +3,10 @@ package main
 import (
 	"container/ring"
 	"fmt"
+	"math"
 	"runtime/pprof"
+	"sort"
+	"strconv"
 	"time"
 
 	"net/http"
@@ -14,8 +17,9 @@ import (
 )
 
 const (
-	INTERVAL = 50
-	BUFSIZE  = 300 * 20
+	INTERVAL    = 50
+	MEASURE_MIN = 1
+	BUFSIZE     = MEASURE_MIN * 60 * (1000 / INTERVAL)
 )
 
 var (
@@ -59,7 +63,9 @@ func debugroutine() {
 	port := 6801
 	r := mux.NewRouter()
 	r.HandleFunc("/debug/goroutine", debugGoroutineHandler)
-	r.HandleFunc("/debug/cpu/chart.png", debugCpuChartHandler)
+	r.HandleFunc("/debug/cpu/history.png", debugCpuHistoryHandler)
+	r.HandleFunc("/debug/cpu/pie.svg", debugCpuPieHandler)
+	r.HandleFunc("/debug/cpu/bar.svg", debugCpuBarHandler)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
@@ -69,8 +75,113 @@ func debugroutine() {
 
 }
 
-func debugCpuChartHandler(w http.ResponseWriter, req *http.Request) {
+func debugCpuPieHandler(w http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	strprecision := vars["prec"]
+	precision := 2
+	if len(strprecision) > 0 {
+		i, err := strconv.ParseInt(strprecision, 10, 64)
+		if err == nil {
+			precision = int(i)
+		}
+	}
 	contentType := "image/png"
+	w.Header().Add("Content-Type", contentType)
+
+	reduce := map[float32]int32{}
+	buf.Do(func(v interface{}) {
+		if v != nil {
+			clockvalue := v.(ClockValue)
+			val := float32(math.Floor(float64(clockvalue.val*float32(math.Pow10(precision)))) / math.Pow10(precision))
+			fmt.Println(val, clockvalue.val, math.Pow10(precision))
+			if _, ok := reduce[val]; !ok {
+				reduce[val] = 0
+			}
+			reduce[val] += 1
+		}
+	})
+
+	var keys []float64
+	for k := range reduce {
+		keys = append(keys, float64(k))
+	}
+	sort.Float64s(keys)
+
+	var values []chart.Value
+	for k := range keys {
+		key := float32(k)
+		v := reduce[key]
+		values = append(values, chart.Value{Value: float64(v), Label: fmt.Sprint(key)})
+	}
+	graph := chart.PieChart{
+		Width:  1920,
+		Height: 1080,
+		Values: values,
+		Background: chart.Style{
+			Padding: chart.Box{
+				Top:  20,
+				Left: 20,
+			},
+		},
+	}
+
+	graph.Render(chart.SVG, w)
+}
+
+func debugCpuBarHandler(w http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	strprecision := vars["prec"]
+	precision := 2
+	if len(strprecision) > 0 {
+		i, err := strconv.ParseInt(strprecision, 10, 64)
+		if err == nil {
+			precision = int(i)
+		}
+	}
+	contentType := "image/png"
+	w.Header().Add("Content-Type", contentType)
+
+	reduce := map[float32]int32{}
+	buf.Do(func(v interface{}) {
+		if v != nil {
+			clockvalue := v.(ClockValue)
+			val := float32(math.Floor(float64(clockvalue.val*float32(math.Pow10(precision)))) / math.Pow10(precision))
+			fmt.Println(val, clockvalue.val, math.Pow10(precision))
+			if _, ok := reduce[val]; !ok {
+				reduce[val] = 0
+			}
+			reduce[val] += 1
+		}
+	})
+
+	var keys []float64
+	for k := range reduce {
+		keys = append(keys, float64(k))
+	}
+	sort.Float64s(keys)
+
+	var values []chart.Value
+	for k := range keys {
+		key := float32(k)
+		v := reduce[key]
+		values = append(values, chart.Value{Value: float64(v), Label: fmt.Sprint(key)})
+	}
+	graph := chart.BarChart{
+		Width:  1920,
+		Height: 1080,
+		Bars:   values,
+		Background: chart.Style{
+			Padding: chart.Box{
+				Top:  20,
+				Left: 20,
+			},
+		},
+	}
+
+	graph.Render(chart.SVG, w)
+}
+func debugCpuHistoryHandler(w http.ResponseWriter, req *http.Request) {
+	contentType := chart.ContentTypeSVG
 	w.Header().Add("Content-Type", contentType)
 
 	xvalues := make([]time.Time, buf.Len())

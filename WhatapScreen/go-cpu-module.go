@@ -1,13 +1,10 @@
-package osinfo
+package main
 
 import (
 	"container/ring"
 	"fmt"
-	"math"
 	"runtime/pprof"
-	"sync"
 	"time"
-	"whatap/util/singleton"
 
 	"net/http"
 
@@ -16,9 +13,20 @@ import (
 	"github.com/wcharczuk/go-chart" //exposes "chart"
 )
 
-var (
-	calculator *RunningStatsCalculator
+const (
+	INTERVAL = 50
+	BUFSIZE  = 300 * 20
 )
+
+var (
+	buf     = ring.New(BUFSIZE)
+	counter = int32(0)
+)
+
+type ClockValue struct {
+	clock time.Time
+	val   float32
+}
 
 func CpuUsagePercent() (result float64) {
 	cpus, _ := cpu.Percent(0, false)
@@ -28,91 +36,23 @@ func CpuUsagePercent() (result float64) {
 	return
 }
 
-var Thread = singleton.NewSingletonTimer(
-	calcStdDev,
-	func() int32 {
-		return 50
-	})
-
-type RunningStatsCalculator struct {
-	count    uint32
-	mean     float32
-	dSquared float32
-	calcLock sync.Mutex
-	buf      *ring.Ring
+func Update(newValue float32) {
+	buf.Value = ClockValue{clock: time.Now(), val: newValue}
+	buf = buf.Next()
+	counter++
 }
 
-func (self *RunningStatsCalculator) Init() {
-	self.calcLock = sync.Mutex{}
-	self.buf = ring.New(1200)
-}
+func Collect() {
+	var lastUpdate time.Time
+	for {
+		now := time.Now()
+		if now.Sub(lastUpdate) > time.Millisecond*INTERVAL {
+			Update(float32(CpuUsagePercent()))
+			lastUpdate = now
+		}
 
-type ClockValue struct {
-	clock time.Time
-	val   float32
-}
-
-func (self *RunningStatsCalculator) Update(newValue float32) {
-	self.calcLock.Lock()
-	defer self.calcLock.Unlock()
-
-	self.count++
-
-	meanDifferential := (newValue - self.mean) / float32(self.count)
-
-	newMean := self.mean + meanDifferential
-
-	dSquaredIncrement :=
-		(newValue - newMean) * (newValue - self.mean)
-
-	newDSquared := self.dSquared + dSquaredIncrement
-
-	self.mean = newMean
-
-	self.dSquared = newDSquared
-	self.buf.Value = ClockValue{clock: time.Now(), val: newValue}
-	self.buf = self.buf.Next()
-}
-
-func (self *RunningStatsCalculator) Variance() float32 {
-
-	return self.dSquared / float32(self.count)
-}
-
-func (self *RunningStatsCalculator) Stdev() float32 {
-
-	return float32(math.Sqrt(float64(self.Variance())))
-}
-
-func (self *RunningStatsCalculator) Reset() {
-	self.calcLock.Lock()
-	defer self.calcLock.Unlock()
-
-	self.count = 0
-	self.mean = 0
-	self.dSquared = 0
-}
-
-func GetInstance() *RunningStatsCalculator {
-	if calculator == nil {
-		calculator = &RunningStatsCalculator{}
-		calculator.Init()
-		Thread.Start()
-		go debugroutine()
+		time.Sleep(10 * time.Millisecond)
 	}
-
-	return calculator
-}
-
-func calcStdDev() {
-	newValue := CpuUsagePercent()
-	calculator.Update(float32(newValue))
-}
-
-func GetSTDDev() (result float32) {
-	result = GetInstance().Stdev()
-	GetInstance().Reset()
-	return
 }
 
 func debugroutine() {
@@ -132,40 +72,40 @@ func debugroutine() {
 func debugCpuChartHandler(w http.ResponseWriter, req *http.Request) {
 	contentType := "image/png"
 	w.Header().Add("Content-Type", contentType)
-	if calculator != nil {
-		xvalues := make([]time.Time, calculator.buf.Len())
-		yvalues := make([]float64, calculator.buf.Len())
-		i := 0
-		calculator.buf.Do(func(v interface{}) {
-			if v != nil {
-				clockvalue := v.(ClockValue)
-				xvalues[i] = clockvalue.clock
-				yvalues[i] = float64(clockvalue.val)
 
-				i++
-			}
+	xvalues := make([]time.Time, buf.Len())
+	yvalues := make([]float64, buf.Len())
+	i := 0
+	buf.Do(func(v interface{}) {
+		if v != nil {
+			clockvalue := v.(ClockValue)
+			xvalues[i] = clockvalue.clock
+			yvalues[i] = float64(clockvalue.val)
 
-		})
-		graph := chart.Chart{
-			XAxis: chart.XAxis{
-				ValueFormatter: func(v interface{}) string {
-					if clock, isFloat := v.(float64); isFloat {
-						return time.Unix(int64(clock)/1000000000, int64(clock)-(int64(clock)/1000000000)*1000000000).Format("15:04:05.999")
-					}
-					return ""
-				},
-			},
-			Series: []chart.Series{
-				chart.TimeSeries{
-					XValues: xvalues,
-					YValues: yvalues,
-				},
-			},
+			i++
 		}
-
-		// buffer := bytes.NewBuffer([]byte{})
-		graph.Render(chart.PNG, w)
+	})
+	graph := chart.Chart{
+		Width:  1920 * 10,
+		Height: 1080,
+		XAxis: chart.XAxis{
+			ValueFormatter: func(v interface{}) string {
+				if clock, isFloat := v.(float64); isFloat {
+					return time.Unix(int64(clock)/1000000000, int64(clock)-(int64(clock)/1000000000)*1000000000).Format("15:04:05.999")
+				}
+				return ""
+			},
+		},
+		Series: []chart.Series{
+			chart.TimeSeries{
+				XValues: xvalues,
+				YValues: yvalues,
+			},
+		},
 	}
+
+	// buffer := bytes.NewBuffer([]byte{})
+	graph.Render(chart.PNG, w)
 
 }
 
@@ -174,4 +114,14 @@ func debugGoroutineHandler(w http.ResponseWriter, req *http.Request) {
 	w.Header().Add("Content-Type", contentType)
 	p := pprof.Lookup("goroutine")
 	p.WriteTo(w, 1)
+}
+
+func main() {
+	go Collect()
+
+	for counter < BUFSIZE {
+		fmt.Println("counter:", counter)
+		time.Sleep(1 * time.Second)
+	}
+	debugroutine()
 }

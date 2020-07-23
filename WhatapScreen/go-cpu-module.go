@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"time"
+	"os"
 
 	"net/http"
 
@@ -24,7 +25,10 @@ const (
 
 var (
 	buf     = ring.New(BUFSIZE)
+	bufclone     = make([]float32,BUFSIZE)
 	counter = int32(0)
+	reqc = make(chan bool)
+
 )
 
 type ClockValue struct {
@@ -44,6 +48,17 @@ func Update(newValue float32) {
 	buf.Value = ClockValue{clock: time.Now(), val: newValue}
 	buf = buf.Next()
 	counter++
+	if counter > 0 && counter % BUFSIZE == 0{
+		i := int32(0)
+		buf.Do(func(v interface{}) {
+			if v != nil {
+				clockvalue := v.(ClockValue)
+				bufclone[i%BUFSIZE] = clockvalue.val
+				i += 1
+			}
+		})
+		reqc <- true	
+	}
 }
 
 func Collect() {
@@ -259,7 +274,39 @@ func debugGoroutineHandler(w http.ResponseWriter, req *http.Request) {
 	p.WriteTo(w, 1)
 }
 
+func summary(){
+	precision := 2
+	for{
+		<- reqc
+		now := time.Now()
+		reduce := map[string]int32{}
+		for _, val := range bufclone{
+			val := fmt.Sprint(math.Floor(float64(val*float32(math.Pow10(precision)))) / math.Pow10(precision))
+			if _, ok := reduce[val]; !ok {
+				reduce[val] = 0
+			}
+			reduce[val] += 1
+		}
+		f, err := os.OpenFile("cpu.log",
+			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil{
+			panic(err)
+			return
+		}
+		f.WriteString("[")
+		f.WriteString(fmt.Sprint(now.Unix()))
+		for k, v := range reduce{
+			f.WriteString(",")	
+			f.WriteString(fmt.Sprint("[",k, ",",v,"]"))
+		}
+		f.WriteString("]\n")
+		f.Close()
+	}
+
+}
+
 func main() {
+	go summary()
 	go Collect()
 
 	for counter < BUFSIZE {

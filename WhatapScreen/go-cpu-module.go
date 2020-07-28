@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 	"os"
-
+	"net"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -25,9 +25,9 @@ const (
 
 var (
 	buf     = ring.New(BUFSIZE)
-	bufclone     = make([]float32,BUFSIZE)
+	bufclone  = make([]float32,BUFSIZE)
 	counter = int32(0)
-	reqc = make(chan bool)
+	reqc = make(chan *[]float32)
 
 )
 
@@ -57,7 +57,7 @@ func Update(newValue float32) {
 				i += 1
 			}
 		})
-		reqc <- true	
+		reqc <- &bufclone	
 	}
 }
 
@@ -274,39 +274,35 @@ func debugGoroutineHandler(w http.ResponseWriter, req *http.Request) {
 	p.WriteTo(w, 1)
 }
 
-func summary(){
-	precision := 2
-	for{
-		<- reqc
-		now := time.Now()
-		reduce := map[string]int32{}
-		for _, val := range bufclone{
-			val := fmt.Sprint(math.Floor(float64(val*float32(math.Pow10(precision)))) / math.Pow10(precision))
-			if _, ok := reduce[val]; !ok {
-				reduce[val] = 0
+func getIp()string{
+	ifaces, err := net.Interfaces()
+// handle err
+	for _, i := range ifaces {
+		addrs, err := i.Addrs()
+		// handle err
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+					ip = v.IP
+			case *net.IPAddr:
+					ip = v.IP
 			}
-			reduce[val] += 1
+			if ip != nil{
+				return ip.String()
+			}
 		}
-		f, err := os.OpenFile("cpu.log",
-			os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil{
-			panic(err)
-			return
-		}
-		f.WriteString("[")
-		f.WriteString(fmt.Sprint(now.Unix()))
-		for k, v := range reduce{
-			f.WriteString(",")	
-			f.WriteString(fmt.Sprint("[",k, ",",v,"]"))
-		}
-		f.WriteString("]\n")
-		f.Close()
 	}
 
+	return ""
 }
 
 func main() {
-	go summary()
+	tags := map[string]string{}
+	tags["ip"]= getIp()
+	hostname, _ := os.Hostname()
+	tags["hostname"]= hostname
+	go summary(tags, reqc)
 	go Collect()
 
 	for counter < BUFSIZE {

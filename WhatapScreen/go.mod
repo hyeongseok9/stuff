@@ -14,4 +14,9 @@ require (
 	golang.org/x/image v0.0.0-20200618115811-c13761719519 // indirect
 	golang.org/x/sys v0.0.0-20200720211630-cb9d2d5c5666 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
+	github.com/namhs9/measure v0.0.0
+)
+
+replace (
+	github.com/namhs9/measure v0.0.0 => ./measure
 )

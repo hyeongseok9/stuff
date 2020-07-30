@@ -8,10 +8,12 @@ socket.bind("tcp://*:5555")
 
 while True:
     #  Wait for next request from client
+    print('waiting for message')
     message = socket.recv()
+    print(' message received ', len(message))
     mp = pb_pb2.MeasurePayload()
     mp.LoadFromString(message)
-    
+    print("load Complete")
     for a in mp.Tag:
         print('Tag:', a.Key, a.Value)
     
@@ -20,3 +22,4 @@ while True:
 
     for a in mp.FloatField:
         print('FloatField:', a.Key, a.Value)
+    print("Process Complete")

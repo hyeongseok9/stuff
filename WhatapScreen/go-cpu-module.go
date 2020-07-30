@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/wcharczuk/go-chart" //exposes "chart"
+//	"github.com/namhs9/measure"
 )
 
 const (
@@ -275,10 +276,10 @@ func debugGoroutineHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func getIp()string{
-	ifaces, err := net.Interfaces()
+	ifaces, _ := net.Interfaces()
 // handle err
 	for _, i := range ifaces {
-		addrs, err := i.Addrs()
+		addrs, _ := i.Addrs()
 		// handle err
 		for _, addr := range addrs {
 			var ip net.IP

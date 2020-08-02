@@ -1,6 +1,7 @@
 import time
 import zmq
 import pb_pb2
+import tsdbhelper
 
 context = zmq.Context()
 socket = context.socket(zmq.REP)
@@ -14,13 +15,19 @@ while True:
     mp = pb_pb2.MeasurePayload()
     mp.ParseFromString(message)
     print("load Complete")
+    tags = {}
     for a in mp.tags:
-        print('Tag:', a.key, a.value)
+        #print('Tag:', a.key, a.value)
+        tags[a.key] = a.value
     
+    fields = {}
     for a in mp.intFields:
         print('IntField:', a.key, a.value)
+        fields[a.key] = a.value
 
     for a in mp.floatFields:
         print('FloatField:', a.key, a.value)
+        fields[a.key] = a.value
+    tsdbhelper.put(measurement = 'cpu_prequency', time = int(time.time()*1000), tags = tags, fields = fields)
     print("Process Complete")
     socket.send(b"ok")

@@ -9,5 +9,5 @@ from datetime import datetime
 #         time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S%z'), \
 #             tags = tags, fields = fields)
 from pprint import pprint
-for r in tsdbhelper.query('select * from cpu_prequency;'):
+for r in tsdbhelper.query('select * from cpu_frequency;'):
     pprint(r)

@@ -64,6 +64,7 @@ func summary(tags map[string]string, reqc <-chan *[]float32) {
 			mp.Tags = append(mp.Tags, &measure.Tag{Key: k, Value: v})
 		}
 		for k, v := range reduce {
+			fmt.Println("=>", k, 100*float32(v)/float32(total))
 			mp.FloatFields = append(mp.FloatFields, &measure.FloatField{Key: k, Value: 100 * float32(v) / float32(total)})
 		}
 

@@ -3,9 +3,26 @@ import styled from 'styled-components';
 import Highcharts from 'highcharts'
 import HighchartsReact from 'highcharts-react-official'
 
-const options = {
+const options =  {
+  chart: {
+      type: 'bar'
+  },
   title: {
-    text: 'My chart'
+      text: 'Stacked bar chart'
+  },
+  yAxis: {
+      min: 0,
+      title: {
+          text: 'CPU Percentage Analysis'
+      }
+  },
+  legend: {
+      reversed: true
+  },
+  plotOptions: {
+      series: {
+          stacking: 'normal'
+      }
   }
 }
 
@@ -21,7 +38,24 @@ export class CPU extends React.Component {
   }
 
   componentDidMount(){
-    this.internalChart.addSeries({'data': [1,2,3,4]})
+
+    fetch('http://localhost:3000/api/', {
+      method: 'GET'
+    })
+    .then(response => response.json())
+    .then(response => {
+      this.internalChart.xAxis[0].setCategories(response.categories, true);
+      
+      Object.keys(response.series)
+      .sort()
+      .map((k) =>  ( 
+        this.internalChart.addSeries({name: k, data:response.series[k]})
+     ));
+
+      // for (var k in response.series){
+      //   this.internalChart.addSeries({name: k, data:response.series[k]})
+      // }
+    });
   }
 
   render() {

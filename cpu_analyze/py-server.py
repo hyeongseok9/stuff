@@ -2,7 +2,7 @@ import time
 import zmq
 import pb_pb2
 import tsdbhelper
-
+from datetime import datetime
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
@@ -28,6 +28,8 @@ while True:
     for a in mp.floatFields:
         print('FloatField:', a.key, a.value)
         fields[a.key] = a.value
-    tsdbhelper.put(measurement = 'cpu_prequency', time = int(time.time()*1000), tags = tags, fields = fields)
+    tsdbhelper.put(measurement = 'cpu_prequency', \
+        time = datetime.now().strftime('%Y-%m-%dT%H:%M:%S%z'), \
+            tags = tags, fields = fields)
     print("Process Complete")
     socket.send(b"ok")

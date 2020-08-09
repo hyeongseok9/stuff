@@ -1,6 +1,6 @@
 from influxdb import InfluxDBClient
 
-def getClient():
+def getClient(host='localhost', port=8086):
     user = 'root'
     password = 'root'
     dbname = 'cpu_perf'
@@ -18,12 +18,12 @@ def getClient():
 
         print("Switch user: " + dbuser)
         client.switch_user(dbuser, dbuser_password)
-    except Exception, e:
+    except Exception as e:
         print(e)
 
     return client
 
-def put(measurement = None, time = 0, tags = {}, fields = {}):
+def put(measurement = None, time = '', tags = {}, fields = {}):
     client = getClient()
     jsonbody = [
         { 
@@ -33,4 +33,10 @@ def put(measurement = None, time = 0, tags = {}, fields = {}):
             'fields' : fields,
         }
     ]
-    client.write_points(json_body)
+    client.write_points(jsonbody)
+
+def query(query)    :
+    client = getClient()
+    result = client.query(query)
+
+    return result

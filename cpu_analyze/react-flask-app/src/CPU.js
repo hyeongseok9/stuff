@@ -5,7 +5,7 @@ import HighchartsReact from 'highcharts-react-official'
 
 const options =  {
   chart: {
-      type: 'column'
+      type: 'area'
   },
   title: {
       text: 'Stacked bar chart'

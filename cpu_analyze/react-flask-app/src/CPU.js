@@ -5,7 +5,7 @@ import HighchartsReact from 'highcharts-react-official'
 
 const options =  {
   chart: {
-      type: 'bar'
+      type: 'column'
   },
   title: {
       text: 'Stacked bar chart'
@@ -15,6 +15,14 @@ const options =  {
       title: {
           text: 'CPU Percentage Analysis'
       }
+  },
+  xAxis: {
+    type: 'datetime',
+    labels: {
+        format: '{value:%Y-%m-%dT%H:%M:%S}',
+        rotation: 45,
+        align: 'left'
+    }
   },
   legend: {
       reversed: true
@@ -47,7 +55,9 @@ export class CPU extends React.Component {
       this.internalChart.xAxis[0].setCategories(response.categories, true);
       
       Object.keys(response.series)
-      .sort()
+      .sort(function(a, b){
+        return parseFloat(b) - parseFloat(a);
+      })
       .map((k) =>  ( 
         this.internalChart.addSeries({name: k, data:response.series[k]})
      ));

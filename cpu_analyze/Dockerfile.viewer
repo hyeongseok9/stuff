@@ -1,0 +1,11 @@
+FROM node
+
+RUN mkdir -p /home/hsnam
+ADD react-flask-app/ /home/hsnam
+WORKDIR /home/hsnam/
+RUN npm install
+
+
+
+CMD ["npm","start"]
+

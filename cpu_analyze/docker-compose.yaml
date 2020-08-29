@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  db:
+    image: influxdb
+    volumes:
+      - ./data:/var/lib/influxdb/data
+    environment:
+      - INFLUX_PASSWORD:root
+      - INFLUX_USERNAME:root
+
+  react:
+    image: simple-influxviewer
+    ports:
+      - "3000:3000"
+    
+
+  api:
+    image: simple-influxvapi
+    ports:
+      - "5555:5555"
+    
+    

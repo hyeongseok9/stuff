@@ -1,6 +1,8 @@
 from influxdb import InfluxDBClient
+import os
 
-def getClient(host='localhost', port=8086):
+
+def getClient(host=os.environ.get('INFLUXDB_HOST', 'localhost'), port=8086):
     user = 'root'
     password = 'root'
     dbname = 'cpu_perf'

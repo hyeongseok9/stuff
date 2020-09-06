@@ -17,8 +17,12 @@ var (
 
 func getSession() (*goczmq.Sock, error) {
 	if conn == nil {
-		fmt.Println("trying to connect")
-		dealer, err := goczmq.NewReq("tcp://localhost:5555")
+		router_host := os.Getenv("ROUTER_HOST")
+		if len(router_host) < 1:
+			router_host = "localhost"
+
+		fmt.Println("trying to connect", router_host)
+		dealer, err := goczmq.NewReq(fmt.Sprint("tcp://",router_host,":5555")
 		fmt.Println("connected ", err)
 		if err != nil {
 			return nil, err

@@ -1,7 +1,7 @@
-from flask import Flask, render_template, send_file, request
+from flask import Flask, render_template, send_file, request, send_from_directory
 from datetime import datetime
 import persistence
-import io
+import io, os
 import imgutil
 
 app = Flask(__name__)
@@ -39,6 +39,18 @@ def photo_stream(photoid):
         mimetype='image/png',
         as_attachment=True,
         attachment_filename='%s.jpg' % timestamp)
+
+@app.route('/photo/<photoid>/real_photo_stream')
+def real_photo_stream(photoid):
+    conn = persistence.create_or_open_db(LocalConf.DB_PATH)
+    photo = persistence.getphoto(conn, photoid)
+    timestamp = photo.Timestamp
+    
+    prefix, filename = os.path.split(photo.RealPhotoPath)
+    
+    conn.close()
+
+    return send_from_directory(prefix, filename=filename, as_attachment=True)
 
 
 if __name__ == '__main__':

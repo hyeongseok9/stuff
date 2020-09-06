@@ -6,7 +6,7 @@ CPPFLAGS=-g -Wall -std=c++11 -I/home/pi/git_repo/mlx90640-library
 #LDFLAGS=-g $(shell root-config --ldflags)
 LDFLAGS=-g -L/usr/local/lib/ -L:/home/pi/mlx90640-library 
 #LDLIBS=$(shell root-config --libs)
-LDLIBS= -lzmq -lbcm2835 libMLX90640_API.a /usr/local/lib/libbcm2835.a
+LDLIBS= -lzmq -lbcm2835 libMLX90640_API.a ./bcm2835-1.55/src/libbcm2835.a 
 INCLUDES= -I/usr/local -I/home/pi/git_repo/mlx90640-library
 
 SRCS=src/rm.cc 
@@ -14,8 +14,8 @@ OBJS=$(subst .cc,.o,$(SRCS)) src/fb.o
 
 all: remoteCamera
 
-remoteCamera: $(OBJS) libMLX90640_API.a
-	$(CXX) $(CPPFLAGS) $(LDFLAGS) -o rm $(OBJS) $(LDLIBS) 
+packages:
+	[ -z `dpkg -l | grep libczmq-dev` ] && sudo apt-get install libczmq-dev
 
 bcm2835-1.55.tar.gz:	
 	wget http://www.airspayce.com/mikem/bcm2835/bcm2835-1.55.tar.gz
@@ -25,6 +25,10 @@ bcm2835-1.55: bcm2835-1.55.tar.gz
 
 bcm2835: bcm2835-1.55
 	cd bcm2835-1.55; ./configure; make; sudo make install
+
+
+remoteCamera: $(OBJS) libMLX90640_API.a
+	$(CXX) $(CPPFLAGS) $(LDFLAGS) -o rm $(OBJS) $(LDLIBS) 
 
 
 depend: .depend

@@ -1,4 +1,5 @@
 zmq
 matplotlib
 numpy
-sqlite3
+Pillow
+picamera

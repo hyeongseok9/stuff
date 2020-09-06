@@ -10,7 +10,8 @@ def create_or_open_db(db_file):
         Picture BLOB,
         Width INTEGER,
         Height INTEGER,
-        Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP);'''
+        Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        RealPhotoPath TEXT );'''
         conn.execute(sql) # shortcut for conn.cursor().execute(sql)
     else:
         print('Schema exists\n')
@@ -23,7 +24,7 @@ def add_photo(conn, photob, width, height):
 
 def allPhotos(conn):
     cur = conn.cursor()
-    cur.execute("SELECT Id, Width, Height, Timestamp FROM THERMAL_PICTURES")
+    cur.execute("SELECT Id, Width, Height, Timestamp, RealPhotoPath FROM THERMAL_PICTURES")
  
     rows = cur.fetchall()
  
@@ -32,16 +33,17 @@ def allPhotos(conn):
 
 def getphoto(conn, photoid):
     cur = conn.cursor()
-    cur.execute("SELECT Picture, Width, Height, Timestamp  FROM THERMAL_PICTURES where Id=?", (photoid,))
+    cur.execute("SELECT Picture, Width, Height, Timestamp, RealPhotoPath  FROM THERMAL_PICTURES where Id=?", (photoid,))
  
-    (picture, width, height, timestamp) = cur.fetchone()
+    (picture, width, height, timestamp, real_photo_path) = cur.fetchone()
     
     class _photo:
-        def __init__(self, picture, width, height, timestamp):
+        def __init__(self, picture, width, height, timestamp, real_photo_path):
             self.Picture = picture
             self.Width = width
             self.Height = height
             self.Timestamp = timestamp
+            self.RealPhotoPath = real_photo_path
 
-    return _photo(picture, width, height, timestamp)
+    return _photo(picture, width, height, timestamp, real_photo_path)
 

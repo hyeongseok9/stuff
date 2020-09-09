@@ -47,7 +47,7 @@ export class CPU extends React.Component {
 
   componentDidMount(){
 
-    fetch('http://localhost:3000/api/', {
+    fetch('/api/', {
       method: 'GET'
     })
     .then(response => response.json())

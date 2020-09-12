@@ -4,6 +4,7 @@ import (
 	//	"time"
 	"fmt"
 	"math"
+	"os"
 
 	"github.com/golang/protobuf/proto"
 
@@ -18,11 +19,13 @@ var (
 func getSession() (*goczmq.Sock, error) {
 	if conn == nil {
 		router_host := os.Getenv("ROUTER_HOST")
-		if len(router_host) < 1:
+		if len(router_host) < 1{
 			router_host = "localhost"
+		}
+			
 
 		fmt.Println("trying to connect", router_host)
-		dealer, err := goczmq.NewReq(fmt.Sprint("tcp://",router_host,":5555")
+		dealer, err := goczmq.NewReq(fmt.Sprint("tcp://",router_host,":5555"))
 		fmt.Println("connected ", err)
 		if err != nil {
 			return nil, err

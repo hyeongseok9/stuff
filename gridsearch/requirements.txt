@@ -3,3 +3,4 @@ joblib
 statsmodels
 sklearn
 pandas
+celery

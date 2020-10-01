@@ -5,4 +5,4 @@ WORKDIR /home/hsnam
 
 ADD . /home/hsnam/
 RUN pip install -r requirements.txt
-CMD ["python","langtest8.py"]
+CMD ["celery","-A", "celery_app.celery", "worker" ,"--loglevel=info"]

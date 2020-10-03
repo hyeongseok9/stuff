@@ -69,10 +69,16 @@ constructor(props) {
         key: 2
       },
       {
+        path: '/cpu',
+        name: 'CPU',
+        css: 'fas fa-microchip',
+        key: 3
+      },
+      {
         path: '/NoMatch',
         name: 'NoMatch',
         css: 'fas fa-hashtag',
-        key: 3
+        key: 4
       },
     ]
   }

@@ -1,0 +1,9 @@
+FROM python:3.6
+
+RUN mkdir -p /home/hsnam
+WORKDIR /home/hsnam
+
+ADD ./pb_pb2.py ./py-server.py ./pyzqclient.py ./tsdbhelper.py ./requirements.txt /home/hsnam/
+RUN pip install -r requirements.txt
+
+CMD ["python","py-server.py"]

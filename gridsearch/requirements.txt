@@ -1,0 +1,7 @@
+matplotlib
+joblib
+statsmodels
+sklearn
+pandas
+celery
+requests

@@ -1,0 +1,12 @@
+FROM ubuntu:16.04
+
+WORKDIR /home/hsnam
+COPY go1.15.2.linux-amd64.tar.gz .
+RUN tar xzvf /home/hsnam/go1.15.2.linux-amd64.tar.gz -C /usr/local
+RUN rm go1.15.2.linux-amd64.tar.gz
+RUN sed -i 's/security.ubuntu.com/ftp.daumkakao.com/g' /etc/apt/sources.list
+RUN sed -i 's/deb.ubuntu.com/ftp.daumkakao.com/g' /etc/apt/sources.list
+
+RUN ln -s /usr/local/go/bin/go /usr/bin/go
+
+CMD ["sleep", "365d"]

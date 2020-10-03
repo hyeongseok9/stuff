@@ -4,3 +4,4 @@ statsmodels
 sklearn
 pandas
 celery
+requests

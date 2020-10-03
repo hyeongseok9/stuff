@@ -77,7 +77,7 @@ from celery import Celery
 from celery.utils.log import get_task_logger
 
 # Create the celery app and get the logger
-celery_app = Celery('tasks', broker='pyamqp://api:kP4zZ6vD@193.122.126.51/hsnam_0927',
+celery_app = Celery('tasks', broker='pyamqp://api:kP4zZ6vD@193.122.126.51/hsnam_1003',
     backend='rpc://',
 )
 logger = get_task_logger(__name__)

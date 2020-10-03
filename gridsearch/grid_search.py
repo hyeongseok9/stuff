@@ -29,7 +29,7 @@ def sarima_configs(seasonal=[0]):
 
 if __name__ == '__main__':
     # data split
-    n_test = int(1000)
+    n_test = int(100)
     
     cfg_list = sarima_configs()
     # grid search

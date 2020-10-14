@@ -1,6 +1,6 @@
 
 class Sum(object):
-    def __init__(self, timeunit = 1000*60):
+    def __init__(self, timeunit = 1000*60*15):
         self.__sum = 0
         self.__count = 0
         self.__clock = None
@@ -24,9 +24,12 @@ class Sum(object):
         v = float(self.__sum / self.__count)
         f.writelines(('{},{}\n'.format(self.__clock,v)))
 
-ff = open('cpmyard.min.csv','w')
+#ff = open('cpmyard.min.csv','w')
+#ff = open('cpmyard.hour.csv','w')
+ff = open('cpmyard.15min.csv','w')
 
 f = open('cpmyard.csv')
+#f = open('cpmyard.min.csv')
 
 header = None
 s = Sum()

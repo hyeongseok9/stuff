@@ -27,9 +27,8 @@ def listProjects():
         
         pcode = proj['pcode']
         try:
-            logger.debug('pcode:', pcode)
+            logger.debug('pcode:%d', pcode)
             servers = whatap_api.listServers(pcode = pcode)
-            logger.debug('servers:', servers)
             for s in servers:
                 oid = s['oid']
                 try:

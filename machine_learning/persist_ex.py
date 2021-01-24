@@ -1,33 +1,39 @@
 
-import sqlite3
+import sqlite3,os
 
-def getConn(dbname="test_ex.db"):
+def getConn(dbname=os.getenv('DBFILE',"test_ex.db")):
     conn = sqlite3.connect(dbname)
     return conn
 
-def save_insert_values(sqlquery, params=None, sqlfile='dump.sql'):
+def save_insert_values(sqlquery, params=None, sqlfile=os.getenv('DUMPFILE', 'dump.sql')):
     with open(sqlfile, 'a+') as f:
         if params:
-            sqlquery = sqlquery.split('values')[0] +' values ('
+            sqlquery = sqlquery.split('values')[0] +' values '
+            f.write(sqlquery)
+        
             new_params = []
             isFirst = True
             for x in params:
-                
+                if not isFirst:
+                    f.write(', ')
+                f.write('(')
+                isFirst2 = True
                 for p in x:
-                    if not isFirst:
+                    if not isFirst2:
                         f.write(', ')    
                     if type(p) == str:
                         f.write("'"+p+"'")
                     else:
                         f.write(str(p))
-                    isFirst = False
+                    isFirst2 = False
+                f.write(')')
+        
+                isFirst = False
+            
+        f.write(';\n')
 
-            sqlquery = sqlquery.format(*new_params)
-        f.write(sqlquery)
-        f.write(');\n')
 
-
-def save_query(sqlquery, params=None, sqlfile='dump.sql'):
+def save_query(sqlquery, params=None, sqlfile=os.getenv('DUMPFILE', 'dump.sql')):
     with open(sqlfile, 'a+') as f:
         if params:
             sqlquery = sqlquery.replace("?", "{}")
@@ -82,7 +88,7 @@ def upsert_item(item_name, item_type, pcode=0, oid=0):
         select_query = """select id from item where item_name = ? AND item_type = ? and pcode=? and oid=?"""
 
         cur = cur.execute(select_query, (item_name, item_type, pcode, oid))
-        save_query(select_query, params=(item_name, item_type, pcode, oid))
+        
         return cur.fetchall()[0][0]
 
 

@@ -7,6 +7,7 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 from sklearn.metrics import mean_squared_error
 from pandas import read_csv
 import time
+from syslog import syslog
 
 def sarima_forecast(history, config, predict_points):
     order, sorder, trend = config
@@ -61,11 +62,11 @@ def score_model(data, n_test, cfg, debug=False):
                 filterwarnings("ignore")
                 result = walk_forward_validation(data, n_test, cfg)
         except Exception as e:
-            print('score_model', e)
+            syslog('score_model'+str( e))
             error = None
     # check for an interesting result
     if result is not None:
-        print(' > Model[%s] %.3f' % (key, result))
+        syslog(' > Model[%s] %.3f' % (key, result))
     return (key, result)
 
 
@@ -128,19 +129,19 @@ if __name__ == '__main__':
 
     data = series.values
     
-    print(data[:10])
+    syslog(str(data[:10]))
     # data split
     n_test = 4*24
-    print(n_test)
+    syslog(str(n_test))
     # model configs
-    cfg_list = sarima_configs(seasonal=[n_test])[:2]
+    cfg_list = sarima_configs(seasonal=[n_test])[83:]
     # grid search
     scores = []
     for cfg in cfg_list:
         score = grid_search(data, cfg, n_test)
         scores.append(score)
     scores.sort(key=lambda tup: tup[1])    
-    print('done')
+    syslog('done')
     # list top 3 configs
     for cfg, error in scores[:3]:
-        print(cfg, error)
+        syslog(str(cfg)+' '+str(error))

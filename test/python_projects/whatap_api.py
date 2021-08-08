@@ -38,14 +38,11 @@ curlcmdlines = """curl '{hostprefix}/yard/api?type=sm&pcode={pcode}&path=%2Foid%
   -H 'Cookie: cookie' 
 """
 
-
-
 def query(hostprefix='https://self.whatap.io', pcode=0, oid=0, cubeType='', cookie='', params={}):
     url = ""
     headers = {}
     for (i, l) in enumerate(curlcmdlines.split('\n')):
         l = l.strip()
-        
         if i == 0 and len(l):
             fields = l.strip().split()
             url = fields[1].strip("''")

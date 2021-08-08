@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ---
 # jupyter:
 #   jupytext:
@@ -14,8 +15,8 @@
 # ---
 
 # +
-# %load_ext autoreload
-# %autoreload 2
+%load_ext autoreload
+%autoreload 2
 import time
 import whatap_api
 from datetime import datetime
@@ -39,7 +40,6 @@ import plotly.express as px
 
 fig = px.scatter(x=clocks, y=cpuHistory)
 fig.show()
-# -
 
 
 
